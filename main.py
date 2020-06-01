@@ -51,7 +51,7 @@ This function calculates the total population of the United States.
 ----------------------------------------------------------------------------"""
 def totalPop():
     total_pop = 0
-    with open("covid_county_population_usafacts(4-22).csv") as pop:
+    with open("covid_county_population_usafacts(5-30).csv") as pop:
         reader_pop = csv.DictReader(pop)
         total_pop = sum (float(row["population"]) for row in reader_pop)
     return total_pop
@@ -65,7 +65,7 @@ This function calculates the total number of cases in the United States.
 def totalNumberOfCases():
     # Get the total number of confirmed cases
     totConfirmed = []
-    with open("covid_confirmed_usafacts(4-22).csv") as file:
+    with open("covid_confirmed_usafacts(5-30).csv") as file:
         reader = csv.reader(file)
 
         # get the number of columns
@@ -86,7 +86,7 @@ This function calculates the total number of deaths in the United States.
 def totalNumberOfDeaths():
     # Get the total number of dead individuals from COVID-19
     totDeaths = []
-    with open("covid_deaths_usafacts(4-22).csv") as file:
+    with open("covid_deaths_usafacts(5-30).csv") as file:
         reader = csv.reader(file)
 
         # get the number of columns
@@ -115,7 +115,7 @@ def integrateEquationsOverTime(deriv, t, L_E, k_E, t_0_E, L_I, k_I, t_0_I, gamma
 """PLOT THE SEIRD MODEL--------------------------------------------------------
 This function plots the SEIRD Model.
 ----------------------------------------------------------------------------"""
-def plotsir(t, S, E, I, R, D):
+def plotSEIRD(t, S, E, I, R, D, title):
     f, ax = plt.subplots(1,1,figsize=(10,4))
 
     ax.plot(t, S, 'b', alpha=0.7, linewidth=2, label='Susceptible')
@@ -128,10 +128,10 @@ def plotsir(t, S, E, I, R, D):
     ax.set_ylim(1, N)
     ax.set_yscale('log')
     #ax.set_ylim(0, 2500000)
-    ax.set_ylim(0, 6045189)
+    #ax.set_ylim(0, 6045189)
     ax.set_xlabel('Time (days)')
     ax.set_ylabel('Population')
-    ax.set_title('SEIR Model of COVID-19')
+    ax.set_title(title)
 
 
     ax.yaxis.set_tick_params(length=0)
@@ -378,6 +378,8 @@ if __name__ == "__main__":
     #D = 14 # infections lasts 2 week on average (14 days)
     y0 = (N - 2, 1, 1, 0, 0)  # initial conditions: one infected, rest susceptible
     moreTimes = np.linspace(0, 365-1, 365)
+    evenMoreTimes = np.linspace(0, 365*2-1, 365*2)
+    withoutQuarentineTime = (0, 54-1, 54)
     #alpha = 1/6 # incubation rate
     #gamma = 1/14 # rate of recovery
 
@@ -397,10 +399,10 @@ if __name__ == "__main__":
     mod.set_param_hint('t_0_I', min=1, max=365)
 
     # Gamma -- Rate of Recovery (sick for 2 weeks up to 6)
-    mod.set_param_hint('gamma', min=0.02, max=0.1)
+    mod.set_param_hint('gamma', min= 1/(6*7), max = 1/12)#0.02, max=0.1)
 
     # Alpha -- Incubation period (5-6 days up to 14 days)
-    mod.set_param_hint('alpha', min = 0.01667, max=0.1)
+    mod.set_param_hint('alpha', min = 0.0714, max=0.2)#0.01667, max=0.1)
 
     # Delta -- Fatality Rate (2% fatality rate)
     mod.set_param_hint('delta', min=0) #, max = 0.005)
@@ -422,11 +424,13 @@ if __name__ == "__main__":
                      t_0_E = 52.100165375262584,
                      L_I = 2,
                      k_I = 0.0005,
-                     t_0_I = 52.100165375262584,
-                     gamma = 0.074,
-                     alpha = 0.192,
+                     t_0_I = 52.1,
+                     gamma = 1/14, #0.074,
+                     alpha = 0.167, #0.192
                      delta = 0.006,
                      rho = 0.002)
+
+    print(result.covar)
 
     plotBeta(moreTimes,
              result.best_values['L_I'],
@@ -498,12 +502,52 @@ if __name__ == "__main__":
                                                result.best_values['delta'],
                                                result.best_values['rho'])
 
+    S_y, E_y, I_y, R_y, D_y = integrateEquationsOverTime(deriv,
+                                               moreTimes,
+                                               result.best_values['L_E'],
+                                               result.best_values['k_E'],
+                                               result.best_values['t_0_E'],
+                                               result.best_values['L_I'],
+                                               result.best_values['k_I'],
+                                               result.best_values['t_0_I'],
+                                               result.best_values['gamma'],
+                                               result.best_values['alpha'],
+                                               result.best_values['delta'],
+                                               result.best_values['rho'])
+    
+    S_2y, E_2y, I_2y, R_2y, D_2y = integrateEquationsOverTime(deriv,
+                                               evenMoreTimes,
+                                               result.best_values['L_E'],
+                                               result.best_values['k_E'],
+                                               result.best_values['t_0_E'],
+                                               result.best_values['L_I'],
+                                               result.best_values['k_I'],
+                                               result.best_values['t_0_I'],
+                                               result.best_values['gamma'],
+                                               result.best_values['alpha'],
+                                               result.best_values['delta'],
+                                               result.best_values['rho'])
+
+    S_q, E_q, I_q, R_q, D_q = integrateEquationsOverTime(deriv,
+                                               evenMoreTimes,
+                                               result.best_values['L_E'],
+                                               result.best_values['k_E'],
+                                               result.best_values['t_0_E'],
+                                               result.best_values['L_I'],
+                                               result.best_values['k_I'],
+                                               result.best_values['t_0_I'],
+                                               result.best_values['gamma'],
+                                               result.best_values['alpha'],
+                                               result.best_values['delta'],
+                                               result.best_values['rho'])
+
+
     # Create an numpy array
     residualBitch = result.residual
 
     # Plot Residual and Best Fit
-    plotBestFitInfected(times, I[:122], total_con, residualBitch[:122])
-    plotBestFitDied(times, D[:122], total_deaths, residualBitch[122:])
+    plotBestFitInfected(times, I[:130], total_con, residualBitch[:130])
+    plotBestFitDied(times, D[:130], total_deaths, residualBitch[130:])
 
 
     print('Population of the US:', N)
@@ -519,8 +563,14 @@ if __name__ == "__main__":
 
     print('Total:', min(total)) # should equal total population
 
-    #PLOT SIR MODEL
-    plotsir(times, S, E, I, R, D)
+    #PLOT SEIRD MODEL
+    plotSEIRD(times, S, E, I, R, D, 'SEIRD Model of COVID-19')
+    
+    #PLOT SEIRD MODEL (A year out)
+    plotSEIRD(moreTimes, S_y, E_y, I_y, R_y, D_y, 'Projected SEIRD Model of COVID-19 for a Year')
+    
+    #PLOT SEIRD MODEL (Two years out)
+    plotSEIRD(evenMoreTimes, S_2y, E_2y, I_2y, R_2y, D_2y, 'Projected SEIRD Model of COVID-19 for Two Years')
 
-    #PLOT WITHOUT QUARENTINE (doesn't work)
-    #plotsir(times, S[:53], E[:53], I[:53], R[:53], D[:53])
+    #PLOT WITHOUT QUARENTINE 
+    #plotSEIRD(withoutQuarentineTime, S[:53], E[:53], I[:53], R[:53], D[:53], 'SEIRD Model without Quatentine')
