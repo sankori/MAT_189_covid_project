@@ -542,12 +542,14 @@ if __name__ == "__main__":
                                                result.best_values['rho'])
 
 
+    
     # Create an numpy array
     residualBitch = result.residual
+    
 
     # Plot Residual and Best Fit
-    plotBestFitInfected(times, I[:130], total_con, residualBitch[:130])
-    plotBestFitDied(times, D[:130], total_deaths, residualBitch[130:])
+    plotBestFitInfected(times, I, total_con, residualBitch[:130])
+    plotBestFitDied(times, D, total_deaths, residualBitch[130:])
 
 
     print('Population of the US:', N)
