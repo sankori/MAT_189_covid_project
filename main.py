@@ -125,6 +125,8 @@ def plotsir(t, S, E, I, R, D):
     ax.plot(t, D, 'r', alpha=0.7, linewidth=2, label='Died')
     ax.plot(t, S+E+I+R+D, 'c--', alpha=0.7, linewidth=2, label='Total')
 
+    ax.set_ylim(1, N)
+    ax.set_yscale('log')
     #ax.set_ylim(0, 2500000)
     ax.set_ylim(0, 6045189)
     ax.set_xlabel('Time (days)')
@@ -199,8 +201,8 @@ delta. We are using a logistics function because the rate of individuals
 dying should decrease over time as we get better at treating.
 ----------------------------------------------------------------------------"""
 def delta(time, Ld, kd, t_0d):
-    gamma = Ld/(1+np.power(np.e, -kd*(time-t_0d)))
-    return gamma
+    delta = Ld/(1+np.power(np.e, -kd*(time-t_0d)))
+    return delta
 
 
 """PLOTTING DELTA FUNCTION-----------------------------------------------------
@@ -422,7 +424,7 @@ if __name__ == "__main__":
                      k_I = 0.0005,
                      t_0_I = 52.100165375262584,
                      gamma = 0.074,
-                     alpha = 0.16,
+                     alpha = 0.192,
                      delta = 0.006,
                      rho = 0.002)
 
@@ -484,7 +486,7 @@ if __name__ == "__main__":
 
     #Integrate SEIRD
     S, E, I, R, D = integrateEquationsOverTime(deriv,
-                                               moreTimes,
+                                               times,
                                                result.best_values['L_E'],
                                                result.best_values['k_E'],
                                                result.best_values['t_0_E'],
@@ -518,7 +520,7 @@ if __name__ == "__main__":
     print('Total:', min(total)) # should equal total population
 
     #PLOT SIR MODEL
-    plotsir(moreTimes, S, E, I, R, D)
+    plotsir(times, S, E, I, R, D)
 
     #PLOT WITHOUT QUARENTINE (doesn't work)
     #plotsir(times, S[:53], E[:53], I[:53], R[:53], D[:53])
